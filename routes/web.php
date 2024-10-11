@@ -24,10 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/send',function(){
-    Mail::to('shahdelaraby36@gmail.com')->send(new Epilepsy());
-    return response('sending');
-});
+//Route::get('/send',function(){
+ //   Mail::to('shahdelaraby36@gmail.com')->send(new Epilepsy());
+  //  return response('sending');
+//});
 
 
 
