@@ -13,8 +13,8 @@ Route::post('/register',[ApiController::class,'register']);
 //Login
 Route::post('/login',[ApiController::class,'login']);
 
-
-Route::post('/email/verification-notification', function (Request $request) {
+//Verifivation email
+/*Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
 
     return response()->json(['message' => 'Verification link sent.']);
@@ -32,20 +32,19 @@ Route::get('/send-email', function () {
 
     return response()->json(['message' => 'Email sent successfully!']);
 });
+Route::middleware(['auth:sanctum']);*/
+
+
 
 Route::group([
     "middleware" => ["auth:sanctum", 'verified'],
 ], function () {
-
-
-
 
 //Logout
 Route::get('/logout',[ApiController::class,'logout']);
 });
 
 
-Route::middleware(['auth:sanctum']);
 
 
 

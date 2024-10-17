@@ -31,8 +31,6 @@ class ApiController extends Controller
 
             ],401);
 
-
-
         }
         $user = User::create([
             'first_name' => $request->first_name,
@@ -48,16 +46,19 @@ class ApiController extends Controller
             'message' => 'User created successfully',
             'token' => $user->createToken("API TOKEN")->plainTextToken
         ], 201);
-    }catch (\Throwable $th){
+
+
+        }catch (\Throwable $th){
         return response()->json([
             'status'=> false,
             'message'=> $th-> getMessage(),
-    ],500);
+        ],500);
 
+        }
     }
 
-    }
 
+    //Login
     public function login(Request $request)
     {
         try
@@ -105,7 +106,8 @@ class ApiController extends Controller
     }
 
 
-
+    //Logout the authenticated user
+    
     public function Logout()
     {
         auth()->user()->tokens()->delete();
