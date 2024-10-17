@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\ApiController;;
+namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -37,15 +37,12 @@ Route::group([
     "middleware" => ["auth:sanctum", 'verified'],
 ], function () {
 
-Route::get('/users', [\App\Http\Controllers\Api\UsersController::class, 'index']);
+
 
 
 //Logout
 Route::get('/logout',[ApiController::class,'logout']);
 });
-
-
-
 
 
 Route::middleware(['auth:sanctum']);
