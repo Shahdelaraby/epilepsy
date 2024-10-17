@@ -23,6 +23,7 @@ class ApiController extends Controller {
             'last_name'  => $request->last_name,
             'email'      => $request->email,
             'password'   => Hash::make($request->password),
+            
         ]);
 
         event(new Registered($user));
@@ -76,6 +77,7 @@ class ApiController extends Controller {
             'last_name'  => 'required|string|max:255',
             'email'      => 'required|email|unique:users,email|max:255',
             'password'   => 'required|confirmed|min:8',
+
         ]);
     }
 
