@@ -12,56 +12,24 @@ use Illuminate\Support\Facades\Validator;
 
 class ApiController extends Controller {
 
-    public function register(Request $request)
-    {
-        try
-        {
-        $validateUser = Validator::make($request->all(),
-[
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required',
-            'password_confirmation' => 'required'
-
-        ]);
-
-        if ($validateUser->fails()) {
-            return response()->json([
-                    'status'=> false,
-                    'message'=> 'Validation error',
-                    'errors'=> $validateUser->errors()
-
-            ],422);
-
-
-
+    public function register(Request $request) {
+        $validator = $this->validateUser($request);
+        if ($validator->fails()) {
+            return $this->errorResponse('Validation error', $validator->errors(), 422);
         }
+
         $user = User::create([
             'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => $request->password,
-            'password_confirmation' => $request->password_confirmation,
-
+            'last_name'  => $request->last_name,
+            'email'      => $request->email,
+            'password'   => Hash::make($request->password),
         ]);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'User created successfully',
-            'token' => $user->createToken("API TOKEN")->plainTextToken
-        ], 201);
+        event(new Registered($user));
 
-
-    }catch (\Throwable $th){
-        return response()->json([
-            'status'=> false,
-            'message'=> $th-> getMessage(),
-    ],500);
-
+        return $this->successResponse('User created successfully please verify your email', [], 201);
     }
 
-    }
     // Login an existing user
     public function login(Request $request) {
         $validator = Validator::make($request->all(), [
@@ -104,12 +72,10 @@ class ApiController extends Controller {
     // Helper method for user registration validation
     private function validateUser(Request $request) {
         return Validator::make($request->all(), [
-           'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'password' => $request->password,
-            'password_confirmation' => $request->password_confirmation,
-
+            'first_name' => 'required|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'required|email|unique:users,email|max:255',
+            'password'   => 'required|confirmed|min:8',
         ]);
     }
 
