@@ -106,8 +106,9 @@ class ApiController extends Controller
     }
 
 
+
     //Logout the authenticated user
-    
+
     public function Logout()
     {
         auth()->user()->tokens()->delete();
@@ -121,4 +122,6 @@ class ApiController extends Controller
     }
 
 
+
 }
+
