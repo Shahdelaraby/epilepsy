@@ -52,7 +52,7 @@ class ApiController extends Controller {
             'token' => $user->createToken("API TOKEN")->plainTextToken
         ], 201);
 
-        
+
     }catch (\Throwable $th){
         return response()->json([
             'status'=> false,
@@ -104,10 +104,11 @@ class ApiController extends Controller {
     // Helper method for user registration validation
     private function validateUser(Request $request) {
         return Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email|max:255',
-            'password'   => 'required|confirmed|min:8',
+           'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'password_confirmation' => $request->password_confirmation,
 
         ]);
     }
