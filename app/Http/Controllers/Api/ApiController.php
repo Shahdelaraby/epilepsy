@@ -22,7 +22,7 @@ class ApiController extends Controller
             'last_name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required',
-            'confirm_password' => 'required'
+            'confirm password' => 'required'
         ]);
 
         if ($validateUser->fails()) {
@@ -40,7 +40,7 @@ class ApiController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'confirm_password' => $request->confirm_password,
+            'confirm password' => $request->confirmpassword,
 
         ]);
 
