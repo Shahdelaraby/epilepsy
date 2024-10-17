@@ -21,7 +21,8 @@ class ApiController extends Controller
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required'
+            'password' => 'required',
+            'confirm password' => 'required'
         ]);
 
         if ($validateUser->fails()) {
@@ -39,7 +40,8 @@ class ApiController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'password' => $request->password,
+            'confirm password' => $request->confirmpassword,
+
         ]);
 
         return response()->json([
@@ -118,7 +120,7 @@ class ApiController extends Controller
 
     public function sendTestEmail()
     {
-        
+
         Mail::raw('This is a test email', function ($message) {
             $message->to('rania@gmail.com')
                     ->subject('Test Email');
