@@ -1,10 +1,10 @@
 <?php
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+
+use App\Http\Controllers\Api\ApiController;;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ApiController;
 use Illuminate\Support\Facades\Mail;
-use App\Http\Controllers\EmailVerificationController;
+use Illuminate\Support\Facades\Route;
+
 
 
 //Register
