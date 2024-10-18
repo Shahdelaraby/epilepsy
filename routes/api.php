@@ -46,6 +46,9 @@ Route::get('/logout',[ApiController::class,'logout']);
 
 
 
+Route::get('/protected-route', function () {
+    return response()->json(['message' => 'This is a protected route!']);
+})->middleware(['verified']);
 
 
 
