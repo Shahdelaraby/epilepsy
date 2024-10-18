@@ -109,7 +109,7 @@ class ApiController extends Controller
 
     //Logout the authenticated user
 
-    public function Logout()
+    /*public function Logout()
     {
         auth()->user()->tokens()->delete();
         return response()->json([
@@ -117,11 +117,9 @@ class ApiController extends Controller
             'message'=> 'User Logged Out',
             'data'=> [],
 
-        ],201);
-
-    }
-
-
-
+        ],201);*/
 }
+
+
+
 
