@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'mailtrap'),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,6 +51,13 @@ return [
 
         'ses' => [
             'transport' => 'ses',
+        ],
+
+        'mailtrap' => [
+            'transport' => 'mailtrap',
+            'client' => [
+                 'timeout' => 5,
+            ],
         ],
 
         'postmark' => [
