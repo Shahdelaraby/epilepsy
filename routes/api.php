@@ -31,7 +31,3 @@ Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 've
 Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [NewPasswordController::class, 'reset']);
 
-
-/*Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');*/
