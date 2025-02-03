@@ -15,8 +15,7 @@ class ApiController extends Controller
         {
         $validateUser = Validator::make($request->all(),
 [
-            'first_name' => 'required',
-            'last_name' => 'required',
+            
             'email' => 'required|email|unique:users,email',
             'password' => 'required',
             'password_confirmation' => 'required'
@@ -33,8 +32,6 @@ class ApiController extends Controller
 
         }
         $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => $request->password,
             'password_confirmation' => $request->password_confirmation,
