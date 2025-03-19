@@ -8,8 +8,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\NewPasswordController;
 use App\Models\User;
+use App\Http\Controllers\MeetingController;
 
-
+Route::middleware('api')->get('/test',function()
+{
+    return "test best";
+});
+Route::get('/test', function () {
+    return "test best";
+});
 
 //Register
 Route::post('/register',[ApiController::class,'register']);
@@ -31,3 +38,12 @@ Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 've
 Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [NewPasswordController::class, 'reset']);
 
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/meetings', [MeetingController::class, 'store']);
+    Route::get('/meetings', [MeetingController::class, 'index']);
+    Route::get('/meetings/{id}', [MeetingController::class, 'show']);
+    Route::post('/meetings/{id}/join', [MeetingController::class, 'join']);
+
+    });
