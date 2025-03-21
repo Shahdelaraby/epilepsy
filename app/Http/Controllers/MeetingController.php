@@ -17,18 +17,22 @@ class MeetingController extends Controller {
     public function store(Request $request) {
         $request->validate([
             'title' => 'required|string',
+            'meeting_room' => 'nullable|string',
             'description' => 'nullable|string',
             'start_time' => 'required|date',
             'end_time' => 'required|date',
             'link' => 'required|string',
+            'type' => 'required|in:video,audio',
         ]);
 
         $meeting = Meeting::create([
             'title' => $request->title,
+            'meeting_room' => $request->meeting_room,
             'description' => $request->description,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
             'link' => $request->link,
+            'type' => $request->type,
             'user_id' => 1, // تعيين مستخدم افتراضي أثناء الاختبار
         ]);
 
@@ -53,6 +57,9 @@ class MeetingController extends Controller {
         if (!$meeting) {
             return response()->json(['error' => 'Meeting not found'], 404);
         }
+        $request->validate([
+            'type' => 'required|in:Video,Audio',
+        ]);
 
         Participant::create([
             'meeting_id' => $meeting->id,

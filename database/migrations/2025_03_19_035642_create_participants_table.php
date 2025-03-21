@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('meeting_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('type', ['Video', 'Audio']);
             $table->timestamps();
         });
     }

@@ -45,5 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/meetings', [MeetingController::class, 'index']);
     Route::get('/meetings/{id}', [MeetingController::class, 'show']);
     Route::post('/meetings/{id}/join', [MeetingController::class, 'join']);
+    Route::post('/meetings/{id}/start', [MeetingController::class, 'start']);
+    Route::post('/meetings/{id}/end', [MeetingController::class, 'end']);
+    Route::post('/meetings/{id}/cancel', [MeetingController::class, 'cancel']);
+
 
     });
