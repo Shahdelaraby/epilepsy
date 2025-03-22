@@ -14,11 +14,11 @@ class CreatePostsTable extends Migration
     public function up()
     {
         Schema::create('posts', function (Blueprint $table) {
-            $table->id(); // المفتاح الأساسي
-            $table->string('title'); // عنوان المنشور
-            $table->text('content'); // محتوى المنشور
-            //$table->unsignedBigInteger('user_id'); // معرف المستخدم الذي نشر المنشور
-            $table->timestamps(); // العمودين created_at و updated_at
+            $table->id();
+            $table->string('title');
+            $table->text('content');
+            //$table->unsignedBigInteger('user_id');
+            $table->timestamps(); 
 
             // إضافة علاقة (Foreign Key) مع جدول users
             //$table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
