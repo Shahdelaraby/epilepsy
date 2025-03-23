@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class participant extends Model
+class Participant extends Model
 {
+    protected $fillable = [
+        'meeting_id',
+        'user_id',
+        'meetin_mode'
+    ];
 
 public function meeting() {
     return $this->belongsTo(Meeting::class);

@@ -19,8 +19,8 @@ class MeetingController extends Controller {
     // إنشاء اجتماع جديد
     public function store(Request $request)
     {
-        #=== validation =====#
-        $request->validate([
+          #=== validation =====#
+          $request->validate([
             'meeting_category' => 'required|in:schedule,communication',
             'meeting_mode'     => 'required|in:audio,video',
             'title'            => 'required|string',
@@ -42,7 +42,6 @@ class MeetingController extends Controller {
             'meeting_room'     =>  'Defualt Romm Until Integrate With Api',
             'description'      => $request->description,
             'user_id'          => auth()->id(),                        // Based on Autnetication
-            'time_zone'        => $request->time_zone ?? 'UTC',
             'link'             => $request->link,                      //from request Until Integrate With Api
             'meeting_mode'     => $request->meeting_mode,
             'meeting_category' => $request->meeting_category,
@@ -61,7 +60,7 @@ class MeetingController extends Controller {
             #communication
             $meetingData['start_time']  = now();
             $meetingData['end_time']    = null;
-            $meetingData['status']      = 'live';   // or pending based on ui/ ux
+            $meetingData['status']      = 'live';   
             $meetingData['schedule']    = 'no';
             $meetingData['for_later']   = 'no';
         }
@@ -76,6 +75,8 @@ class MeetingController extends Controller {
             'data'    => $meeting
         ], 201);
     }
+
+
     #=================================================================================#
     // عرض تفاصيل اجتماع معين
     public function show($id)
@@ -99,13 +100,13 @@ class MeetingController extends Controller {
         }
 
         $request->validate([
-            'type' => 'required|in:Video,Audio',
+            'meeting_mode' => 'required|in:Video,Audio',
         ]);
 
         Participant::create([
             'meeting_id' => $meeting->id,
             'user_id' => 1,
-            'type' => $request->type,
+            'meeting_mode' => $request->meeting_mode,
         ]);
 
         return response()->json(['message' => 'Joined meeting successfully!']);
