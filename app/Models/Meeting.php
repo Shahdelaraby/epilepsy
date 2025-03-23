@@ -3,11 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Meeting extends Model
 {
 
-protected $fillable = ['title', 'meeting_room', 'description', 'start_time', 'end_time', 'link', 'status', 'type', 'user_id'];
+protected $fillable = ['title', 'meeting_room', 'description', 'start_time', 'end_time', 'time_zone','link', 'status', 'meeting_mode', 'user_id'];
+
+public function getLocalStartTimeAttribute()
+{
+    return Carbon::parse($this->start_time)->setTimezone($this->time_zone);
+}
+
 public function user() {
     return $this->belongsTo(User::class);
 }

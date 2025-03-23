@@ -7,6 +7,7 @@ use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 
 class MeetingController extends Controller {
     // عرض جميع الاجتماعات
@@ -15,36 +16,75 @@ class MeetingController extends Controller {
     }
 
     // إنشاء اجتماع جديد
-    public function store(Request $request) {
-        $request->validate([
-            'title' => 'required|string',
-            'meeting_room' => 'nullable|string',
-            'description' => 'nullable|string',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date',
-            'link' => 'required|string',
-            'status' => 'pending',
-            'type' => 'required|in:video,audio',
-        ]);
+    public function store(Request $request)
+{
+    // التحقق من صحة البيانات المُرسلة
+    $request->validate([
+        // لتحديد فئة الاجتماع: schedule أو communication
+        'type'           => 'required|in:schedule,communication',
+        // لتحديد وضع الاجتماع: audio أو video
+        'meeting_mode'   => 'required|in:audio,video',
+        'title'          => 'required|string',
+        // meeting_room مطلوب فقط إذا كان نوع الاجتماع schedule
+        'meeting_room'   => 'required_if:type,schedule|string|nullable',
+        'description'    => 'nullable|string',
+        'user_id'        => 'required|exists:users,id',
+        'start_time'     => 'nullable|date',
+        'end_time'       => 'nullable|date',
+        'time_zone'      => 'nullable|string',
+        'link'           => 'nullable|url',
+        // الحقول الإضافية لحالة communication (يمكن استخدامها لتحديد جدولة لاحقة)
+        'schedule'       => 'nullable|in:yes,no',
+        'for_later'      => 'nullable|in:yes,no'
+    ]);
 
-        $meetingLink = $this->getIntegrationMeetingLink(); // افتراضياً يتم جلب الرابط من دالة خارجية
+    if ($request->type === 'schedule') {
+        // في حالة الاجتماع المجدول: يتم استخدام meeting_room وكذلك start_time و end_time
         $meeting = Meeting::create([
-            'title' => $request->title,
-            'meeting_room' => $request->meeting_room,
-            'description' => $request->description,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
-            'link' => $request->link,
-            'status' => 'pending',
-            'type' => $request->type,
-            'user_id' => 1, // تعيين مستخدم افتراضي أثناء الاختبار
+            'title'         => $request->title,
+            'meeting_room'  => $request->meeting_room,
+            'description'   => $request->description,
+            'user_id'       => $request->user_id,
+            'start_time'    => $request->start_time,
+            'end_time'      => $request->end_time,
+            'time_zone'     => $request->time_zone ?? 'UTC',
+            'link'          => $request->link,
+            // هنا نستخدم meeting_mode لتحديد هل الاجتماع audio أو video
+            'type'          => $request->meeting_mode,
+            'status'        => 'pending'
+        ]);
+        $responseData = $meeting->toArray();
+    } else {
+        // في حالة الاتصال الفوري (communication)
+        $meeting = Meeting::create([
+            'title'         => $request->title,
+            'description'   => $request->description,
+            'user_id'       => $request->user_id,
+            'start_time'    => now(),          // يبدأ فوراً
+            'end_time'      => null,           // النهاية تكون null
+            'time_zone'     => $request->time_zone ?? 'UTC',
+            'link'          => $request->link,
+            // نستخدم meeting_mode هنا أيضاً لتحديد audio أو video
+            'type'          => $request->meeting_mode,
+            'status'        => 'live'
         ]);
 
-
-
-        return response()->json(['message' => 'Meeting created successfully', 'meeting' => $meeting], 201);
+        $responseData = $meeting->toArray();
+        // التأكد من أن meeting_room غير معروض في الرد
+        $responseData['meeting_room'] = null;
+        // التأكد من أن end_time يظهر كـ null
+        $responseData['end_time'] = null;
+        // إضافة الحقول الإضافية لتحديد حالة الجدولة اللاحقة
+        $responseData['schedule']  = $request->input('schedule', 'no');
+        $responseData['for_later'] = $request->input('for_later', 'no');
     }
 
+    return response()->json([
+        'status'  => 'success',
+        'message' => 'Meeting created successfully',
+        'data'    => $responseData
+    ]);
+}
     // عرض تفاصيل اجتماع معين
     public function show($id) {
         $meeting = Meeting::with(['user', 'participants'])->find($id);
@@ -78,7 +118,7 @@ class MeetingController extends Controller {
 }
 
 
-public function startMeet(Request $request, $id)
+public function start(Request $request, $id)
 {
     $meeting = Meeting::findOrFail($id);
 
@@ -86,9 +126,9 @@ public function startMeet(Request $request, $id)
         return response()->json(['message' => 'Meeting is not in pending state'], 400);
     }
 
-    // جلب الرابط من API التكامل
 
-
+    $meeting->status = 'live';
+    $meeting->save();
 
 
     return response()->json(['message' => 'Meeting started', 'meeting' => $meeting]);
