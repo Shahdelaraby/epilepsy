@@ -8,7 +8,7 @@ use Carbon\Carbon;
 class Meeting extends Model
 {
 
-protected $fillable = ['title', 'meeting_room', 'description', 'start_time', 'end_time', 'time_zone','link', 'status', 'meeting_mode', 'user_id'];
+protected $fillable = ['title', 'meeting_room', 'description', 'start_time', 'end_time', 'time_zone','link', 'status', 'meeting_mode', 'user_id','for_later','schedule','meeting_category'];
 
 public function getLocalStartTimeAttribute()
 {

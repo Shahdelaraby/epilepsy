@@ -25,6 +25,7 @@ return new class extends Migration
             $table->enum('meeting_mode', ['audio', 'video'])->default('audio');
             $table->enum('meeting_category', ['schedule', 'communication'])->default('schedule');
             $table->enum('schedule', ['yes', 'no'])->default('no');
+            $table->enum('for_later', ['yes', 'no'])->default('no');
             $table->enum('status', ['pending', 'live', 'end', 'canceled'])->default('pending');
             $table->timestamps();
         });
