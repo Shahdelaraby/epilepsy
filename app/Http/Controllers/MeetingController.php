@@ -18,14 +18,12 @@ class MeetingController extends Controller {
     // إنشاء اجتماع جديد
     public function store(Request $request)
 {
-    // التحقق من صحة البيانات المُرسلة
+
     $request->validate([
-        // لتحديد فئة الاجتماع: schedule أو communication
+
         'type'           => 'required|in:schedule,communication',
-        // لتحديد وضع الاجتماع: audio أو video
         'meeting_mode'   => 'required|in:audio,video',
         'title'          => 'required|string',
-        // meeting_room مطلوب فقط إذا كان نوع الاجتماع schedule
         'meeting_room'   => 'required_if:type,schedule|string|nullable',
         'description'    => 'nullable|string',
         'user_id'        => 'required|exists:users,id',
@@ -33,13 +31,11 @@ class MeetingController extends Controller {
         'end_time'       => 'nullable|date',
         'time_zone'      => 'nullable|string',
         'link'           => 'nullable|url',
-        // الحقول الإضافية لحالة communication (يمكن استخدامها لتحديد جدولة لاحقة)
         'schedule'       => 'nullable|in:yes,no',
         'for_later'      => 'nullable|in:yes,no'
     ]);
 
     if ($request->type === 'schedule') {
-        // في حالة الاجتماع المجدول: يتم استخدام meeting_room وكذلك start_time و end_time
         $meeting = Meeting::create([
             'title'         => $request->title,
             'meeting_room'  => $request->meeting_room,
@@ -49,32 +45,27 @@ class MeetingController extends Controller {
             'end_time'      => $request->end_time,
             'time_zone'     => $request->time_zone ?? 'UTC',
             'link'          => $request->link,
-            // هنا نستخدم meeting_mode لتحديد هل الاجتماع audio أو video
             'type'          => $request->meeting_mode,
             'status'        => 'pending'
         ]);
         $responseData = $meeting->toArray();
     } else {
-        // في حالة الاتصال الفوري (communication)
+        // (communication)
         $meeting = Meeting::create([
             'title'         => $request->title,
             'description'   => $request->description,
             'user_id'       => $request->user_id,
-            'start_time'    => now(),          // يبدأ فوراً
-            'end_time'      => null,           // النهاية تكون null
+            'start_time'    => now(),
+            'end_time'      => null,
             'time_zone'     => $request->time_zone ?? 'UTC',
             'link'          => $request->link,
-            // نستخدم meeting_mode هنا أيضاً لتحديد audio أو video
             'type'          => $request->meeting_mode,
             'status'        => 'live'
         ]);
 
         $responseData = $meeting->toArray();
-        // التأكد من أن meeting_room غير معروض في الرد
         $responseData['meeting_room'] = null;
-        // التأكد من أن end_time يظهر كـ null
         $responseData['end_time'] = null;
-        // إضافة الحقول الإضافية لتحديد حالة الجدولة اللاحقة
         $responseData['schedule']  = $request->input('schedule', 'no');
         $responseData['for_later'] = $request->input('for_later', 'no');
     }
@@ -110,7 +101,7 @@ class MeetingController extends Controller {
 
     Participant::create([
         'meeting_id' => $meeting->id,
-        'user_id' => 1, // تعيين مستخدم افتراضي أثناء الاختبار
+        'user_id' => 1, 
         'type' => $request->type,
     ]);
 
@@ -165,7 +156,7 @@ public function cancel($id)
 
 private function getIntegrationMeetingLink()
 {
-    // هنا يتم استدعاء API لجلب رابط الاجتماع من خدمة خارجية
-    return "https://external-meeting.com/room12345"; // استبدلها باللوجيك الفعلي
+
+    return "https://external-meeting.com/room12345";
 }
 }
