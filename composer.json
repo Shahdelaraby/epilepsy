@@ -6,9 +6,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "google/apiclient": "^2.18",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "spatie/laravel-google-calendar": "^3.8",
         "symfony/mailer": "^7.1",
         "tymon/jwt-auth": "^2.1"
     },

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Meeting;
 use App\Models\Participant;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -60,7 +61,7 @@ class MeetingController extends Controller {
             #communication
             $meetingData['start_time']  = now();
             $meetingData['end_time']    = null;
-            $meetingData['status']      = 'live';   
+            $meetingData['status']      = 'live';
             $meetingData['schedule']    = 'no';
             $meetingData['for_later']   = 'no';
         }
@@ -158,5 +159,63 @@ class MeetingController extends Controller {
     {
 
         return "https://external-meeting.com/room12345";
+    }
+
+
+// ---------------------------- Event Management ---------------------------- //
+
+public function storeEvent(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'description' => 'nullable|string',
+            'startDateTime' => 'required|date',
+            'endDateTime' => 'required|date',
+            'meeting_id' => 'required|exists:meetings,id',
+            'attendees' => 'nullable|array',
+            'meetLink' => 'nullable|string'
+        ]);
+
+        $event = new Event();
+        $event->name = $request->name;
+        $event->description = $request->description;
+        $event->startDateTime = Carbon::parse($request->startDateTime);
+        $event->endDateTime = Carbon::parse($request->endDateTime);
+        $event->meeting_id = $request->meeting_id;
+
+        if ($request->has('attendees')) {
+            foreach ($request->attendees as $attendee) {
+                $event->addAttendee($attendee);
+            }
+        }
+
+        if ($request->has('meetLink')) {
+            $event->addMeetLink($request->meetLink);
+        }
+
+        $event->save();
+
+        return response()->json(['message' => 'Event created successfully', 'event' => $event]);
+    }
+
+    public function getEvents($meetingId)
+    {
+        $meeting = Meeting::findOrFail($meetingId);
+        $events = $meeting->events;
+        return response()->json($events);
+    }
+
+    public function startEvent($id)
+    {
+        $event = Event::findOrFail($id);
+
+        if (!$event->meet_link) {
+            return response()->json(['message' => 'No Google Meet link found for this event.'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Event started successfully.',
+            'meet_link' => $event->meet_link
+        ]);
     }
 }
