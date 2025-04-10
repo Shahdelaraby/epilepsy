@@ -53,8 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     //Events
-Route::post('/event/store', [MeetingController::class, 'storeEvent']);
-Route::get('/event/all', [MeetingController::class, 'getEvents']);
+Route::post('/store', [MeetingController::class, 'storeEvent']);
+Route::get('/event/all/{id}', [MeetingController::class, 'getEvents']);
 Route::put('/event/start/{id}', [MeetingController::class, 'startEvent']);
 Route::put('/event/update/{id}', [MeetingController::class, 'updateEvent']);
 

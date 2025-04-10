@@ -2,26 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Meeting;
-use App\Models\Participant;
-use App\Models\Event;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use App\Models\{Meeting, Participant};
+use Illuminate\Http\{Request, JsonResponse};
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Spatie\GoogleCalendar\Event;
 
 class MeetingController extends Controller {
-    // عرض جميع الاجتماعات
     public function index()
     {
         return response()->json(Meeting::with(['user', 'participants'])->get());
     }
-    #=================================================================================#
-    // إنشاء اجتماع جديد
+
     public function store(Request $request)
     {
-          #=== validation =====#
-          $request->validate([
+        $request->validate([
             'meeting_category' => 'required|in:schedule,communication',
             'meeting_mode'     => 'required|in:audio,video',
             'title'            => 'required|string',
@@ -35,30 +30,23 @@ class MeetingController extends Controller {
             'for_later'        => 'nullable|in:yes,no'
         ]);
 
-        #== prepare data  to store in db ====#
-        #common Data
-        $meetingData =
-        [
+        $meetingData = [
             'title'            => $request->title,
-            'meeting_room'     =>  'Defualt Romm Until Integrate With Api',
+            'meeting_room'     => 'Default Room Until Integrate With API',
             'description'      => $request->description,
-            'user_id'          => auth()->id(),                        // Based on Autnetication
-            'link'             => $request->link,                      //from request Until Integrate With Api
+            'user_id'          => auth()->id(),
+            'link'             => null,
             'meeting_mode'     => $request->meeting_mode,
             'meeting_category' => $request->meeting_category,
         ];
 
-        if ($request->meeting_category === 'schedule')
-        {
+        if ($request->meeting_category === 'schedule') {
             $meetingData['start_time']  = $request->start_time;
             $meetingData['end_time']    = $request->end_time;
             $meetingData['status']      = 'pending';
             $meetingData['schedule']    = 'yes';
             $meetingData['for_later']   = 'yes';
-        }
-        else
-        {
-            #communication
+        } else {
             $meetingData['start_time']  = now();
             $meetingData['end_time']    = null;
             $meetingData['status']      = 'live';
@@ -66,10 +54,23 @@ class MeetingController extends Controller {
             $meetingData['for_later']   = 'no';
         }
 
-        #===create Meeting==#
+        // Google Calendar event creation
+        $event = new Event;
+        $event->name = $request->title;
+        $event->description = $request->description;
+        $event->startDateTime = Carbon::parse($request->start_time);
+        $event->endDateTime = Carbon::parse($request->end_time);
+        $event->addAttendee(['email' => auth()->user()->email]);
+        $event->addMeetLink();
+        $event->setColorId(9);
+        $event->save();
+
         $meeting = Meeting::create($meetingData);
 
-        #=== response =====#
+        if (isset($event->hangoutLink)) {
+            $meeting->update(['link' => $event->hangoutLink]);
+        }
+
         return response()->json([
             'status'  => 'success',
             'message' => 'Meeting created successfully',
@@ -77,9 +78,6 @@ class MeetingController extends Controller {
         ], 201);
     }
 
-
-    #=================================================================================#
-    // عرض تفاصيل اجتماع معين
     public function show($id)
     {
         $meeting = Meeting::with(['user', 'participants'])->find($id);
@@ -90,8 +88,7 @@ class MeetingController extends Controller {
 
         return response()->json($meeting);
     }
-    #=================================================================================#
-    // الانضمام لاجتماع
+
     public function join(Request $request, $id)
     {
         $meeting = Meeting::find($id);
@@ -112,7 +109,7 @@ class MeetingController extends Controller {
 
         return response()->json(['message' => 'Joined meeting successfully!']);
     }
-    #=================================================================================#
+
     public function start(Request $request, $id)
     {
         $meeting = Meeting::findOrFail($id);
@@ -121,14 +118,12 @@ class MeetingController extends Controller {
             return response()->json(['message' => 'Meeting is not in pending state'], 400);
         }
 
-
         $meeting->status = 'live';
         $meeting->save();
 
-
         return response()->json(['message' => 'Meeting started', 'meeting' => $meeting]);
     }
-    #=================================================================================#
+
     public function end($id)
     {
         $meeting = Meeting::findOrFail($id);
@@ -141,7 +136,7 @@ class MeetingController extends Controller {
 
         return response()->json(['message' => 'Meeting ended', 'meeting' => $meeting]);
     }
-    #=================================================================================#
+
     public function cancel($id)
     {
         $meeting = Meeting::findOrFail($id);
@@ -154,68 +149,9 @@ class MeetingController extends Controller {
 
         return response()->json(['message' => 'Meeting canceled', 'meeting' => $meeting]);
     }
-    #=================================================================================#
+
     private function getIntegrationMeetingLink()
     {
-
         return "https://external-meeting.com/room12345";
-    }
-
-
-// ---------------------------- Event Management ---------------------------- //
-
-public function storeEvent(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'startDateTime' => 'required|date',
-            'endDateTime' => 'required|date',
-            'meeting_id' => 'required|exists:meetings,id',
-            'attendees' => 'nullable|array',
-            'meetLink' => 'nullable|string'
-        ]);
-
-        $event = new Event();
-        $event->name = $request->name;
-        $event->description = $request->description;
-        $event->startDateTime = Carbon::parse($request->startDateTime);
-        $event->endDateTime = Carbon::parse($request->endDateTime);
-        $event->meeting_id = $request->meeting_id;
-
-        if ($request->has('attendees')) {
-            foreach ($request->attendees as $attendee) {
-                $event->addAttendee($attendee);
-            }
-        }
-
-        if ($request->has('meetLink')) {
-            $event->addMeetLink($request->meetLink);
-        }
-
-        $event->save();
-
-        return response()->json(['message' => 'Event created successfully', 'event' => $event]);
-    }
-
-    public function getEvents($meetingId)
-    {
-        $meeting = Meeting::findOrFail($meetingId);
-        $events = $meeting->events;
-        return response()->json($events);
-    }
-
-    public function startEvent($id)
-    {
-        $event = Event::findOrFail($id);
-
-        if (!$event->meet_link) {
-            return response()->json(['message' => 'No Google Meet link found for this event.'], 404);
-        }
-
-        return response()->json([
-            'message' => 'Event started successfully.',
-            'meet_link' => $event->meet_link
-        ]);
     }
 }

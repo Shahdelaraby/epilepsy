@@ -27,9 +27,9 @@ public function participants() {
 
 
 
-public function meeting()
+public function events()
     {
-        return $this->belongsTo(Meeting::class);
+        return $this->hasMany(Event::class);
     }
 
 }
