@@ -127,5 +127,11 @@ class MeetingController extends Controller {
         'message' => 'Meeting created successfully',
         'data'    => $meeting
     ], 201);
+
+}
+public function join(Request $request)
+{
+    
+    return response()->json(['message' => 'https://meet.google.com/wrx-iajd-sqc']);
 }
 }

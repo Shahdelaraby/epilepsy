@@ -1,71 +1,71 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use Illuminate\Support\Str;
+
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as RulesPassword;
-use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class NewPasswordController extends Controller
 {
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
         ]);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
+        $otp = rand(1000, 9999);
+
+        DB::table('password_resets_otp')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'otp_code' => $otp,
+                'otp_expires_at' => now()->addMinutes(10),
+                'created_at' => now()
+            ]
         );
 
-        if ($status == Password::RESET_LINK_SENT) {
-            return [
-                'status' => __($status)
-            ];
-        }
+        // إرسال الإيميل بشكل عادي بدون Mail class
+        Mail::raw("كود التفعيل الخاص بك هو: $otp", function ($message) use ($request) {
+            $message->to($request->email)
+                    ->subject('رمز التحقق لإعادة تعيين كلمة المرور');
+        });
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
+        return response()->json(['message' => 'تم إرسال رمز التحقق إلى بريدك الإلكتروني']);
     }
 
     public function reset(Request $request)
     {
         $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email|exists:users,email',
+            'otp_code' => 'required|digits:4',
             'password' => ['required', 'confirmed', RulesPassword::defaults()],
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        $record = DB::table('password_resets_otp')
+            ->where('email', $request->email)
+            ->where('otp_code', $request->otp_code)
+            ->where('otp_expires_at', '>=', now())
+            ->first();
 
-                $user->tokens()->delete();
-
-                event(new PasswordReset($user));
-            }
-        );
-
-        if ($status == Password::PASSWORD_RESET) {
-            return response([
-                'message'=> 'Password reset successfully'
-            ]);
+        if (!$record) {
+            return response()->json(['message' => 'الرمز غير صحيح أو منتهي'], 400);
         }
 
-        return response([
-            'message'=> __($status)
-        ], 500);
+        $user = User::where('email', $request->email)->first();
 
+        $user->update([
+            'password' => Hash::make($request->password),
+            'remember_token' => Str::random(60),
+        ]);
+
+        DB::table('password_resets_otp')->where('email', $request->email)->delete();
+
+        return response()->json(['message' => 'تم تغيير كلمة المرور بنجاح']);
     }
-
-
 }
