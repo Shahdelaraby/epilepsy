@@ -13,7 +13,8 @@
         "laravel/tinker": "^2.9",
         "spatie/laravel-google-calendar": "^3.8",
         "symfony/mailer": "^7.1",
-        "tymon/jwt-auth": "^2.1"
+        "tymon/jwt-auth": "^2.1",
+        "yasserbelhimer/agora-access-token-generator": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
