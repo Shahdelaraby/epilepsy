@@ -29,7 +29,7 @@ class VerificationController extends Controller {
     {
         // التحقق من أن الـ OTP Code موجود وصالح
         $request->validate([
-            'otp_code' => 'required|digits:4', // التحقق من أن الكود مكون من 4 أرقام (تعديل العدد حسب الحاجة)
+            'otp_code' => 'required|digits:4', // التحقق من أن الكود مكون من 4 أرقام
         ]);
 
         // البحث عن الكود في جدول password_resets_otp
@@ -39,32 +39,62 @@ class VerificationController extends Controller {
                         ->first();
 
         if (!$otpRecord) {
-            // إذا لم يتم العثور على الكود أو انتهت صلاحيته
             return response()->json(['message' => 'الكود خطأ أو انتهت صلاحيته'], 400);
         }
 
-        // هنا بنعتبر أن الكود تم التحقق منه بنجاح
-        // مثلا: يمكنك الآن إرسال المستخدم إلى صفحة إعادة تعيين كلمة المرور
-        // أو تعديل حالة التحقق في قاعدة البيانات إذا كنت تستخدم جدول آخر لتخزين حالة التحقق
-
-        // في حالة استخدام جدول الـ users وتحديث حالة التحقق
+        // جلب المستخدم بناءً على الإيميل الموجود في سجل OTP
         $user = User::where('email', $otpRecord->email)->first();
 
         if ($user) {
-            // تحديث حالة التحقق
-            $user->email_verified_at = now();
-            $user->save();
+            // حفظ الـ user_id في السيشن لتستخدمه في الخطوات التالية
+            session(['reset_user_id' => $user->id]);
+
+            return response()->json([
+                'message' => 'تم التحقق من الكود بنجاح. يمكنك الآن إعادة تعيين كلمة المرور.'
+            ]);
+        } else {
+            return response()->json(['message' => 'المستخدم غير موجود'], 404);
         }
-
-        return response()->json(['message' => 'تم التحقق من الكود بنجاح']);
     }
-    public function resend() {
-        if (auth()->user()->hasVerifiedEmail()) {
-            return response()->json(["msg" => "Email already verified."], 400);
-        }
 
-        auth()->user()->sendEmailVerificationNotification();
+    public function resendOtp(Request $request)
+{
+    // تحقق من الإيميل اللي هيجيلك
+    $request->validate([
+        'email' => 'required|email|exists:users,email',
+    ]);
 
-        return response()->json(["msg" => "Email verification link sent on your email id"]);
-    }
+    $email = $request->email;
+
+    // أولاً نحذف الكودات القديمة لهذا الإيميل (لو حابب تبدأ نظيف)
+    DB::table('password_resets_otp')
+        ->where('email', $email)
+        ->delete();
+
+    // ثانياً: نولّد كود جديد
+    $otp_code = random_int(1000, 9999); // كود مكون من 4 أرقام
+
+    // نحسب مدة صلاحية الكود (مثلاً 10 دقائق من الآن)
+    $otp_expires_at = now()->addMinutes(10);
+
+    // ثالثاً: نحفظ الكود الجديد في جدول password_resets_otp
+    DB::table('password_resets_otp')->insert([
+        'email' => $email,
+        'otp_code' => $otp_code,
+        'otp_expires_at' => $otp_expires_at,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // رابعاً: ترسل الكود على الإيميل (بسيطة مبدئياً Mail::raw)
+    \Mail::raw("كود التحقق الجديد هو: $otp_code", function ($message) use ($email) {
+        $message->to($email)
+                ->subject('كود التحقق الجديد');
+    });
+
+    // خامساً: ترجع ريسبونس للموبايل أو للفرونت
+    return response()->json([
+        'message' => 'تم إرسال كود تحقق جديد إلى بريدك الإلكتروني.'
+    ]);
+}
 }

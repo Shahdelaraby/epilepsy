@@ -24,13 +24,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::get('/logout', [ApiController::class, 'logout']);
 });
 
-
 Route::post('forgot-password', [NewPasswordController::class, 'forgotPassword']);
 Route::post('/reset-password', [NewPasswordController::class, 'reset']);
 Route::post('/verify-otp', [VerificationController::class, 'verifyOtp']);
-
+Route::post('/resend-otp', [VerificationController::class, 'resendOtp']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::post('/profile/update', [ProfileController::class, 'update']);
+    Route::post('/user/update-avatar', [ProfileController::class, 'updateAvatar']);
+
+
 
     Route::post('/meetings', [MeetingController::class, 'store']);
     Route::get('/meetings', [MeetingController::class, 'index']);
@@ -40,11 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/meetings/{id}/end', [MeetingController::class, 'end']);
     Route::post('/meetings/{id}/cancel', [MeetingController::class, 'cancel']);
 
-
     Route::post('/agora/token', [AgoraController::class, 'generateToken']);
 
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::post('/profile/update', [ProfileController::class, 'update']);
+    //Route::get('/profile', [ProfileController::class, 'show']);
+    //Route::post('/profile/update', [ProfileController::class, 'update']);
+    //Route::post('/user/update-avatar', [ProfileController::class, 'updateAvatar']);
 
 
 

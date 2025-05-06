@@ -36,7 +36,7 @@ class ApiController extends Controller
         $user = User::create([
             'email' => $request->email,
             'password' => $request->password,
-            // 'password_confirmation' => $request->password_confirmation,
+
 
         ]);
 
@@ -107,13 +107,11 @@ class ApiController extends Controller
     public function login(Request $request)
 {
     try {
-        // التحقق من صحة البيانات المدخلة
+
         $validateUser = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
-
-        // إذا كانت البيانات المدخلة غير صحيحة، إرجاع خطأ مع تفاصيل
         if ($validateUser->fails()) {
             return response()->json([
                 'status' => false,
@@ -122,7 +120,6 @@ class ApiController extends Controller
             ], 401);
         }
 
-        // محاولة التحقق من البيانات المدخلة في قاعدة البيانات
         if (!Auth::guard('web')->attempt($request->only('email', 'password'))) {
             return response()->json([
                 'status' => false,
@@ -130,16 +127,13 @@ class ApiController extends Controller
             ], 401);
         }
 
-        // جلب المستخدم بناءً على البريد الإلكتروني
-        $user = Auth::guard('web')->user(); // تم استخدام Auth هنا بدلاً من User::where
 
-        // توليد توكن للمستخدم
+        $user = Auth::guard('web')->user();
+
         $token = $user->createToken('API Token')->plainTextToken;
 
-        // جلب البروفايل المرتبط باليوزر
-        $profile = $user->profile; // Assuming there's a 'profile' relationship
+        $profile = $user->profile;
 
-        // إرجاع استجابة ناجحة مع بيانات اليوزر والبروفايل
         return response()->json([
             'status' => true,
             'message' => 'User Logged In successfully',
@@ -147,25 +141,19 @@ class ApiController extends Controller
             'token_type' => 'Bearer',
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'full_name' => $user->full_name,
                 'email' => $user->email,
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null, // تأكد من أن اليوزر عنده صورة (avatar)
-                'profile' => $profile ? [
-                    'bio' => $profile->bio,
-                    'phone' => $profile->phone,
-                    'address' => $profile->address,
-                ] : null,
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+
             ],
         ], 201);
     } catch (\Throwable $th) {
-        // في حالة حدوث أي استثناء، إرجاع خطأ مع تفاصيل
         return response()->json([
             'status' => false,
             'message' => $th->getMessage(),
         ], 500);
     }
 }
-
 
     //Logout the authenticated user
 

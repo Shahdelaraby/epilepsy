@@ -13,7 +13,6 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // تعديل avatar عشان يرجع لينك كامل
         $userData = $user->toArray();
         if ($user->avatar) {
             $userData['avatar'] = asset($user->avatar);
@@ -36,31 +35,28 @@ class ProfileController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            // حذف الصورة القديمة لو موجودة
+
             if ($user->avatar && File::exists(public_path($user->avatar))) {
                 File::delete(public_path($user->avatar));
             }
 
-            // تأكد إن الفولدر موجود
             $folderPath = public_path('avatars');
             if (!File::exists($folderPath)) {
                 File::makeDirectory($folderPath, 0755, true);
             }
 
-            // اسم فريد للصورة
             $file = $request->file('avatar');
             $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
 
-            // حفظ الصورة في public/avatars
             $file->move($folderPath, $filename);
 
-            // حفظ المسار النسبي في الداتابيز
+
             $data['avatar'] = 'avatars/' . $filename;
         }
 
         $user->update($data);
 
-        // نرجع رابط الصورة كامل
+        
         $userData = $user->toArray();
         if ($user->avatar) {
             $userData['avatar'] = asset($user->avatar);
@@ -71,4 +67,37 @@ class ProfileController extends Controller
             'user' => $userData,
         ]);
     }
+    public function updateAvatar(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'avatar' => 'required|image|max:2048',
+        ]);
+
+        if ($user->avatar && File::exists(public_path($user->avatar))) {
+            File::delete(public_path($user->avatar));
+        }
+
+        $folderPath = public_path('avatars');
+        if (!File::exists($folderPath)) {
+            File::makeDirectory($folderPath, 0755, true);
+        }
+
+        $file = $request->file('avatar');
+        $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+
+
+        $file->move($folderPath, $filename);
+
+        $user->avatar = 'avatars/' . $filename;
+        $user->save();
+
+
+        return response()->json([
+            'message' => 'Profile image updated successfully',
+            'avatar' => asset($user->avatar),
+        ]);
+    }
+
 }
