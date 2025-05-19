@@ -14,7 +14,7 @@ return new class extends Migration
             $table->date('birthday')->nullable();
             $table->string('country')->nullable();
             $table->enum('gender', ['Male', 'Female'])->nullable();
-            $table->string('avatar')->nullable(); // للصورة الشخصية
+            $table->string('avatar')->nullable(); 
         });
     }
 

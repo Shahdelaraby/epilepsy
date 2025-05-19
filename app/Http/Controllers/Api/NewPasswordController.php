@@ -31,7 +31,7 @@ class NewPasswordController extends Controller
             ]
         );
 
-        // إرسال الإيميل بشكل عادي بدون Mail class
+
         Mail::raw("كود التفعيل الخاص بك هو: $otp", function ($message) use ($request) {
             $message->to($request->email)
                     ->subject('رمز التحقق لإعادة تعيين كلمة المرور');
@@ -43,32 +43,32 @@ class NewPasswordController extends Controller
     public function reset(Request $request)
     {
         $request->validate([
-            'code' => 'required|digits:4', // الكود لازم 4 أرقام
-            'password' => 'required|confirmed|min:6', // الباسورد وتأكيده
+            'code' => 'required|digits:4',
+            'password' => 'required|confirmed|min:6',
         ]);
 
-        // نبحث عن الكود في جدول password_resets_otp
+
         $otpRecord = DB::table('password_resets_otp')
                         ->where('otp_code', $request->code)
-                        ->where('otp_expires_at', '>', now()) // ونتأكد إنه لسه ما انتهى
+                        ->where('otp_expires_at', '>', now())
                         ->first();
 
         if (!$otpRecord) {
             return response()->json(['message' => 'الكود خطأ أو انتهت صلاحيته.'], 400);
         }
 
-        // نجيب اليوزر من جدول users عن طريق الإيميل المخزن في سجل الـ OTP
+
         $user = User::where('email', $otpRecord->email)->first();
 
         if (!$user) {
             return response()->json(['message' => 'المستخدم غير موجود.'], 404);
         }
 
-        // نحدث كلمة المرور
+
         $user->password = Hash::make($request->password);
         $user->save();
 
-        // نحذف الكود من جدول password_resets_otp عشان ما يتكرر
+        
         DB::table('password_resets_otp')->where('email', $otpRecord->email)->delete();
 
         return response()->json(['message' => 'تم تغيير كلمة المرور بنجاح.']);

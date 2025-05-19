@@ -17,9 +17,9 @@ class AgoraController extends Controller
         $appID = config('agora.app_id');
         $appCertificate = config('agora.app_certificate');
         $channelName = $request->channelName;
-        $uid = 0; // خلي 0 لو فلاتر هو اللي هيختار الـ UID
-        $role = 1; // 1 = Publisher
-        $expireTimeInSeconds = 3600; // مثلاً ساعة
+        $uid = 0;
+        $role = 1;
+        $expireTimeInSeconds = 3600; 
         $currentTimestamp = now()->timestamp;
         $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
 

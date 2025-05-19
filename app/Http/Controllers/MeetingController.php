@@ -18,7 +18,7 @@ class MeetingController extends Controller {
 
     public function store(Request $request)
 {
-    // return $request->attendees;
+
     $request->validate([
         'meeting_category' => 'required|in:schedule,communication',
         'meeting_mode'     => 'required|in:audio,video',
@@ -102,7 +102,7 @@ class MeetingController extends Controller {
 
     Participant::create([
         'meeting_id' => $meeting->id,
-        'user_id' => auth()->id(), // الشخص الذي أنشأ الاجتماع
+        'user_id' => auth()->id(), 
         'meeting_mode' => $request->meeting_mode,
     ]);
 
@@ -131,7 +131,7 @@ class MeetingController extends Controller {
 }
 public function join(Request $request)
 {
-    
+
     return response()->json(['message' => 'https://meet.google.com/wrx-iajd-sqc']);
 }
 }

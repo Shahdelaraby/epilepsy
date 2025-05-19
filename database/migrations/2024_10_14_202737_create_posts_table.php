@@ -17,11 +17,9 @@ class CreatePostsTable extends Migration
             $table->id();
             $table->string('title');
             $table->text('content');
-            //$table->unsignedBigInteger('user_id');
-            $table->timestamps(); 
+            $table->timestamps();
 
-            // إضافة علاقة (Foreign Key) مع جدول users
-            //$table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
         });
     }
 

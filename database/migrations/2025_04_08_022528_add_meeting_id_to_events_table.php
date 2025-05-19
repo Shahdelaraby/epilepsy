@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('events', function (Blueprint $table) {
-            $table->unsignedBigInteger('meeting_id')->nullable();  // إضافة عمود meeting_id
-            $table->foreign('meeting_id')->references('id')->on('meetings')->onDelete('cascade'); // مفتاح خارجي
+            $table->unsignedBigInteger('meeting_id')->nullable();
+            $table->foreign('meeting_id')->references('id')->on('meetings')->onDelete('cascade');
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('events', function (Blueprint $table) {
-            $table->dropForeign(['meeting_id']);  // حذف العلاقة باستخدام اسم المفتاح الخارجي
-            $table->dropColumn('meeting_id');  // حذف العمود
+            $table->dropForeign(['meeting_id']);
+            $table->dropColumn('meeting_id');  
         });
     }
 };

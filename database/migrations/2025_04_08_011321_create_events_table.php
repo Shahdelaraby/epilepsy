@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('events', function (Blueprint $table) {
-            $table->id(); // عمود ID أساسي
+            $table->id(); 
             $table->string('name');
             $table->text('description');
             $table->timestamp('startDateTime');
             $table->timestamp('endDateTime');
-            $table->json('attendees')->nullable();  // عمود الحضور
-            $table->string('meet_link')->nullable(); // رابط Google Meet
-            $table->timestamps();  // للحفاظ على تاريخ الإنشاء والتحديث
+            $table->json('attendees')->nullable();
+            $table->string('meet_link')->nullable();
+            $table->timestamps();
         });
     }
 
